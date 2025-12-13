@@ -60,6 +60,7 @@ Claude Code will:
 
 Beyond base Reveal.js, this skill adds:
 
+- **Custom CSS theme** - CSS variables for easy customization of colors, typography, callouts, and layout without modifying core styles
 - **Scaffold generation** - Scaffolding script generates HTML structure so the LLM doesn't waste tokens recreating boilerplate
 - **Overflow detection** - Automated checking catches content that extends beyond slide boundaries, faster than taking and reviewing screenshots
 - **Chart export mode** - `?export` query parameter disables Chart.js animations so charts render fully in PDF/screenshots
