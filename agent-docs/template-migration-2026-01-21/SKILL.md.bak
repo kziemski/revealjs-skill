@@ -87,45 +87,13 @@ Based on the user's content, determine:
 - Which slides should be section dividers (centered, larger text)
 - Where to use vertical slide stacks for drill-down content
 
-### Step 2: Extract Template
+### Step 2: Generate the Scaffold
 
-Use the `create-presentation.js` script (located in the `scripts/` directory next to this SKILL.md file) to extract and customize a presentation template from `template.zip`.
+Use the `create-presentation.js` script (located in the `scripts/` directory next to this SKILL.md file) to generate the HTML scaffold.
 
 ```bash
-node <path-to-skill>/scripts/create-presentation.js --structure 1,1,d,3,1,d,1 --title "My Presentation" --output-dir ./presentations
+node <path-to-skill>/scripts/create-presentation.js --structure 1,1,d,3,1,d,1 --title "My Presentation" --output presentation.html
 ```
-
-**Finding the script path:** The script is at `scripts/create-presentation.js` relative to where this SKILL.md file is located. Common locations:
-- Project skill: `.claude/skills/revealjs/scripts/create-presentation.js`
-- User skill: `~/.claude/skills/revealjs/scripts/create-presentation.js`
-
-**Options:**
-- `--slides N` - Create N horizontal slides (simple mode)
-- `--structure <list>` - Mixed layout with comma-separated values:
-  - `1` = single horizontal slide
-  - `N` (where N > 1) = vertical stack of N slides
-  - `d` = section divider slide (centered, no content wrapper)
-- `--output-dir, -o <dir>` - Output directory for deck folder (default: current directory)
-- `--title <text>` - Presentation title (default: Presentation)
-- `--slug <text>` - Custom slug for deck folder (default: random hex)
-
-**What gets created:**
-The script extracts `template.zip` to a folder named `deck-{slug}/` containing:
-- `index.html` - The presentation HTML file
-- `lib/` - reveal.js library, plugins, fonts, and CSS (all dependencies included, no CDN needed)
-
-**Examples:**
-```bash
-# 10 horizontal slides in ./presentations directory
-node <path-to-skill>/scripts/create-presentation.js --slides 10 --output-dir ./presentations
-
-# Mixed structure: intro, 2 content slides, divider, 3-slide vertical stack, divider, closing
-node <path-to-skill>/scripts/create-presentation.js --structure 1,1,1,d,3,d,1 --title "Q4 Review" --output-dir ./decks
-
-# Custom slug
-node <path-to-skill>/scripts/create-presentation.js --structure 1,1,1,d,3,d,1,1 --title "My Deck" --slug mydeck
-```
-
 
 **Finding the script path:** The script is at `scripts/create-presentation.js` relative to where this SKILL.md file is located. Common locations:
 - Project skill: `.claude/skills/revealjs/scripts/create-presentation.js`
@@ -152,61 +120,96 @@ node <path-to-skill>/scripts/create-presentation.js --structure 1,1,1,d,3,d,1 --
 
 ### Step 3: Customize the CSS
 
-The template includes all necessary CSS in `lib/offline-v2.css`. You can customize styles by:
+The scaffold script automatically copies `base-styles.css` to your presentation directory as `styles.css`. Now customize the CSS variables (especially colors) for your presentation theme.
 
-1. **Editing `lib/offline-v2.css` directly** - This file contains all reveal.js styles and theme variables
-2. **Adding a custom CSS file** - Link your own CSS file in `index.html` after the main stylesheet
-
-**Template includes local fonts** in `lib/fonts/` - no need for Google Fonts CDN. Available fonts include:
-- Montserrat (default theme font)
-- Overpass, Overpass2
-- Lato
-- Open Sans
-- And many more (see `lib/fonts/` directory)
-
-**Using Google Fonts (optional):** If you prefer Google Fonts, add an `@import` in a custom CSS file:
+**Using Google Fonts:** Add an `@import` at the top of your CSS file:
 ```css
 @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Lato:wght@300;400;600&display=swap');
 
+:root {
+  --heading-font: "Playfair Display", Georgia, serif;
+  --body-font: "Lato", Helvetica, sans-serif;
+  /* ... */
+}
+```
+
+The base file includes:
+
+1. **CSS Variables** for easy customization:
+```css
+:root {
+  /* ===========================================
+     BACKGROUND COLOR - Set this first!
+     =========================================== */
+  --background-color: #ffffff;  /* Change for dark themes (e.g., #1a1a2e) */
+
+  /* Typography - ALWAYS use pt for font sizes */
+  --heading-font: "Source Sans Pro", Helvetica, sans-serif;
+  --body-font: "Source Sans Pro", Helvetica, sans-serif;
+  --base-font-size: 32px;  /* Only px value - sets reveal.js base */
+  --text-size: 16pt;       /* Base body text - intentionally small */
+  --h1-size: 48pt;
+  --h2-size: 36pt;
+  --h3-size: 24pt;
+
+  /* Colors - customize these for each presentation */
+  --primary-color: #2196F3;
+  --secondary-color: #ff9800;
+  --text-color: #222;       /* Use light color (e.g., #FAF7F2) for dark backgrounds */
+  --muted-color: #666;      /* Adjust for dark backgrounds too */
+  --box-bg: #f5f5f5;
+  --box-border: #ddd;
+}
+```
+
+2. **Override reveal.js styles** using `.reveal` prefix:
+```css
 .reveal {
-  font-family: "Lato", Helvetica, sans-serif;
+  font-family: var(--body-font);
 }
 
 .reveal h1, .reveal h2, .reveal h3 {
-  font-family: "Playfair Display", Georgia, serif;
+  font-family: var(--heading-font);
+  text-transform: none;
+  color: var(--text-color);
+}
+
+.reveal p, .reveal li {
+  font-size: var(--text-size);
+  color: var(--text-color);
 }
 ```
 
-**Typography guidance:**
-- **Always use `pt` (points) for font sizes** - slides are fixed-size, so `pt` is predictable and familiar (like PowerPoint/Keynote)
-- Base text should be around 16-18pt for readability
-- When a slide has less content, increase font sizes to fill space appropriately
-- Use larger sizes (24pt, 32pt, 48pt) for headings based on hierarchy
-
-**Custom CSS example:**
-Create a `custom.css` file in your deck folder and add it to `index.html`:
-```html
-<link rel="stylesheet" type="text/css" href="lib/offline-v2.css">
-<link rel="stylesheet" type="text/css" href="custom.css">
-```
-
-Then customize in `custom.css`:
+3. **Slide layout styles** - control padding and positioning:
 ```css
 .reveal .slides section {
   padding: 40px 60px;
   text-align: left;
 }
-
-.reveal h1 { font-size: 48pt; }
-.reveal h2 { font-size: 36pt; }
-.reveal h3 { font-size: 24pt; }
-.reveal p, .reveal li { font-size: 16pt; }
 ```
 
+4. **Component classes** - boxes, callouts, etc. (see [CSS Components Reference](#css-components-reference))
+
+5. **Text size utilities** (use these to scale up text when slides have less content):
+```css
+/* Base text is 16pt - use these classes to increase size when needed */
+.text-lg { font-size: 18pt; }    /* Slightly larger */
+.text-xl { font-size: 20pt; }    /* Medium emphasis */
+.text-2xl { font-size: 24pt; }   /* Strong emphasis */
+.text-3xl { font-size: 28pt; }   /* Very large */
+.text-4xl { font-size: 32pt; }   /* Maximum body text */
+.text-muted { color: var(--muted-color); }
+.text-center { text-align: center; }
+```
+
+**Typography guidance:**
+- Base text (`--text-size: 16pt`) is intentionally small to fit more content
+- When a slide has less content, use `.text-lg`, `.text-xl`, etc. to fill space appropriately
+- This approach prevents overflow on content-heavy slides while allowing flexibility on lighter slides
 
 ### Step 4: Fill in the HTML Content
 
-Edit the `index.html` file in your deck folder to add content to each slide. **Always use HTML markup, never markdown** (even though the template includes a markdown plugin). Follow these patterns:
+Edit the generated HTML file to add content to each slide. Follow these patterns:
 
 **Standard slide structure:**
 ```html
@@ -253,10 +256,8 @@ Why inline styles for grids? Each slide's layout needs vary - column ratios, gap
 Run the overflow checker to ensure no slides have content that extends beyond boundaries:
 
 ```bash
-node <path-to-skill>/scripts/check-overflow.js deck-{slug}/index.html
+node scripts/check-overflow.js presentation.html
 ```
-
-**Note:** Replace `deck-{slug}` with your actual deck folder name.
 
 The script checks each slide for:
 - **Vertical overflow**: Content taller than slide height
@@ -271,8 +272,8 @@ If overflow is detected, reduce content or adjust font sizes on affected slides.
 Capture screenshots of all slides:
 
 ```bash
-cd deck-{slug}
-npx decktape reveal "index.html?export" output.pdf \
+cd <presentation-directory>
+npx decktape reveal "presentation.html?export" output.pdf \
   --screenshots \
   --screenshots-directory "screenshots/$(date +%Y%m%d_%H%M%S)"
 ```
@@ -384,23 +385,6 @@ Font Awesome is included in the scaffold. Usage:
 <i class="fa-solid fa-gears"></i>
 ```
 
-
-## Template Structure
-
-The `template.zip` file contains a complete reveal.js presentation exported from slides.com, including:
-
-- **reveal.js core** (`lib/reveal.js`, `lib/reveal.css`) - The presentation framework
-- **Plugins** (`lib/reveal-plugins.js`):
-  - RevealZoom - Zoom into elements (Alt+Click / Ctrl+Click)
-  - RevealNotes - Speaker notes view (press S)
-  - RevealMarkdown - Markdown support (available but skill prefers HTML markup)
-  - RevealHighlight - Code syntax highlighting
-- **Fonts** (`lib/fonts/`) - Local font files for offline use
-- **Styles** (`lib/offline-v2.css`) - Complete CSS including themes
-- **Offline support** (`lib/offline.js`) - Works without internet connection
-
-**Note:** The template uses slides.com format but we convert it to standard reveal.js `<section>` format when extracting. All plugins are pre-configured and ready to use.
-
 ## Advanced Features
 
 For fragments (progressive reveal), speaker notes, custom backgrounds, auto-animate, and transitions, see [references/advanced-features.md](references/advanced-features.md).
@@ -439,7 +423,7 @@ Use these directly without custom CSS:
 
 **IMPORTANT: Before adding ANY chart, you MUST read [references/charts.md](references/charts.md).** Charts require specific flexbox/grid patterns to size correctly and avoid overflow. Do not attempt to add charts without reading the full documentation first.
 
-**Note:** The template does not include Chart.js by default. To add charts, you'll need to include Chart.js and the reveal.js chart plugin. See [references/charts.md](references/charts.md) for details.
+The scaffold includes the Chart.js plugin for adding bar, line, pie, doughnut, and scatter charts to slides.
 
 **Required pattern** - charts need flexbox containers and `maintainAspectRatio: false`:
 
@@ -473,9 +457,7 @@ Use these directly without custom CSS:
 
 ## Dependencies
 
-Required for the scripts:
+Required for the scripts, should be already installed:
 - **Node.js** (for running scripts)
-- **adm-zip** (for template extraction): `npm install adm-zip`
-- **cheerio** (for HTML parsing): `npm install cheerio`
 - **Puppeteer** (for overflow checking): `npm install puppeteer`
 - **Decktape** (for screenshots): `npx decktape` (runs directly)

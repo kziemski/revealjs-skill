@@ -4,7 +4,7 @@ Charts are added using the [reveal.js-plugins/chart](https://github.com/rajgoel/
 
 ## Setup
 
-The chart plugin is included by default in the scaffold. It adds these to your HTML:
+**Note:** Chart.js is NOT included in the template by default. You must add it manually (see "Adding Chart.js to Template" section below). Once added, configure it like this:
 
 ```html
 <!-- In <head> -->

@@ -2,6 +2,10 @@
 
 These features are available if the user specifically requests them. They are not used by default.
 
+**Note:** The template includes RevealZoom, RevealNotes, RevealMarkdown, and RevealHighlight plugins. All features documented here work with the template.
+
+These features are available if the user specifically requests them. They are not used by default.
+
 ## Fragments (Progressive Reveal)
 
 Show content step-by-step on click:
