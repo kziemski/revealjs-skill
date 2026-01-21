@@ -289,17 +289,9 @@ function main() {
     // Write cleaned HTML
     fs.writeFileSync(indexPath, cleanedHTML);
 
-    
-    // Create assets folder
-    const assetsPath = path.join(deckPath, 'assets');
-    if (!fs.existsSync(assetsPath)) {
-      fs.mkdirSync(assetsPath, { recursive: true });
-    }
-
     const totalSlides = options.structure.reduce((a, b) => a + (b === 'd' ? 1 : b), 0);
 
     console.log(`\n✓ Presentation created: ${deckPath}`);
-    console.log(`  - Assets folder created: ${assetsPath}`);
     console.log(`  - ${totalSlides} slides (structure: ${options.structure.join(',')})`);
     console.log(`  - Open ${path.join(deckPath, 'index.html')} in a browser to view`);
   } catch (error) {

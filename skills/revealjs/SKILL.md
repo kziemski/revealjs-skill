@@ -113,6 +113,7 @@ node <path-to-skill>/scripts/create-presentation.js --structure 1,1,d,3,1,d,1 --
 The script extracts `template.zip` to a folder named `deck-{slug}/` containing:
 - `index.html` - The presentation HTML file
 - `lib/` - reveal.js library, plugins, fonts, and CSS (all dependencies included, no CDN needed)
+- `assets/` - Folder for images, documents, and other assets (created automatically)
 
 **Examples:**
 ```bash
@@ -126,29 +127,6 @@ node <path-to-skill>/scripts/create-presentation.js --structure 1,1,1,d,3,d,1 --
 node <path-to-skill>/scripts/create-presentation.js --structure 1,1,1,d,3,d,1,1 --title "My Deck" --slug mydeck
 ```
 
-
-**Finding the script path:** The script is at `scripts/create-presentation.js` relative to where this SKILL.md file is located. Common locations:
-- Project skill: `.claude/skills/revealjs/scripts/create-presentation.js`
-- User skill: `~/.claude/skills/revealjs/scripts/create-presentation.js`
-
-**Options:**
-- `--slides N` - Create N horizontal slides (simple mode)
-- `--structure <list>` - Mixed layout with comma-separated values:
-  - `1` = single horizontal slide
-  - `N` (where N > 1) = vertical stack of N slides
-  - `d` = section divider slide (centered, no content wrapper)
-- `--output <file>` - Output filename (default: presentation.html)
-- `--title <text>` - Presentation title
-- `--styles <file>` - Custom CSS filename (default: styles.css)
-
-**Examples:**
-```bash
-# 10 horizontal slides
-node <path-to-skill>/scripts/create-presentation.js --slides 10 --output presentation.html
-
-# Mixed structure: intro, 2 content slides, divider, 3-slide vertical stack, divider, closing
-node <path-to-skill>/scripts/create-presentation.js --structure 1,1,1,d,3,d,1 --title "Q4 Review" --output presentation.html
-```
 
 ### Step 3: Customize the CSS
 
@@ -203,6 +181,12 @@ Then customize in `custom.css`:
 .reveal p, .reveal li { font-size: 16pt; }
 ```
 
+**IMPORTANT - CSS Integration:** When you create custom CSS files (like `custom.css`), they will be automatically integrated into `lib/offline-v2.css` when you run the finalization script (Step 7). The finalization script will:
+- Append all custom CSS files to `lib/offline-v2.css`
+- Remove external CSS file references from `index.html`
+- Delete the separate custom CSS files
+
+This ensures a single, consolidated CSS file for easier distribution.
 
 ### Step 4: Fill in the HTML Content
 
@@ -318,6 +302,44 @@ npx decktape reveal "presentation.html?export" output.pdf \
 ```
 
 Then re-examine the updated screenshots to verify fixes. The new timestamped folder makes it easy to compare with the previous version.
+
+### Step 7: Finalize Presentation
+
+**CRITICAL:** After completing your presentation content and custom CSS, you MUST run the finalization script to integrate styles and clean up artifacts.
+
+Run the finalization script:
+
+```bash
+node <path-to-skill>/scripts/finalize.js deck-{slug}
+```
+
+**What the finalization script does:**
+
+1. **Creates `assets/` folder** - Standard directory for images, documents, and other assets (also created automatically by `create-presentation.js`)
+2. **Integrates custom CSS** - Finds all `*.css` files in the deck root (except `lib/offline-v2.css`) and:
+   - Appends their content to `lib/offline-v2.css` with clear markers
+   - Removes the separate CSS files
+   - Removes external CSS `<link>` tags from `index.html` (keeps only `lib/offline-v2.css`)
+3. **Cleans build artifacts** - Removes temporary files:
+   - `screenshots/` directory (from decktape screenshot generation)
+   - `output.pdf` (from decktape PDF export)
+
+**Why finalization is important:**
+
+- **Single CSS file**: All styles consolidated in `lib/offline-v2.css` for easier distribution
+- **Clean HTML**: No external CSS references that could break if files are moved
+- **Production ready**: Removes temporary build artifacts
+- **Standard structure**: Ensures `assets/` folder exists for organizing images/docs
+
+**When to run finalization:**
+
+- After completing all slide content
+- After adding any custom CSS files
+- Before sharing or deploying the presentation
+- After generating screenshots/PDFs (to clean up artifacts)
+
+**Note:** The `assets/` folder is created automatically by `create-presentation.js`, but the finalization script ensures it exists if you're finalizing an older deck.
+
 
 ## CSS Components Reference
 
